@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "ExpressQueryResult": {
+      "description": "快递查询结果",
+      "properties": {
+        "EBusinessID": {
+          "default": "",
+          "title": "用户ID",
+          "type": "string"
+        },
+        "ShipperCode": {
+          "default": "",
+          "title": "快递公司编码",
+          "type": "string"
+        },
+        "LogisticCode": {
+          "default": "",
+          "title": "快递单号",
+          "type": "string"
+        },
+        "Success": {
+          "default": false,
+          "title": "成功与否(true/false)",
+          "type": "boolean"
+        },
+        "Reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "失败原因"
+        },
+        "Location": {
+          "default": "",
+          "title": "当前所在城市",
+          "type": "string"
+        },
+        "Traces": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TraceInfo"
+          },
+          "title": "物流轨迹信息",
+          "type": "array"
+        }
+      },
+      "title": "ExpressQueryResult",
+      "type": "object"
+    },
+    "HttpError": {
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data"
+        },
+        "http_code": {
+          "default": 500,
+          "title": "Http Code",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "HttpError",
+      "type": "object"
+    },
+    "OutModel": {
+      "$ref": "#/$defs/ExpressQueryResult",
+      "title": "OutModel"
+    },
+    "TraceInfo": {
+      "description": "物流轨迹信息",
+      "properties": {
+        "AcceptTime": {
+          "default": "",
+          "title": "轨迹发生时间",
+          "type": "string"
+        },
+        "AcceptStation": {
+          "default": "",
+          "title": "轨迹描述",
+          "type": "string"
+        },
+        "Location": {
+          "default": "",
+          "title": "历史节点所在城市",
+          "type": "string"
+        }
+      },
+      "title": "TraceInfo",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "data": {
+      "$ref": "#/$defs/OutModel",
+      "default": null
+    },
+    "error": {
+      "$ref": "#/$defs/HttpError",
+      "default": null
+    }
+  },
+  "title": "OutputRespModel",
+  "type": "object"
+}

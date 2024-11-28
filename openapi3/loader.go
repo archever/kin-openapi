@@ -870,6 +870,10 @@ func (loader *Loader) resolveResponseRef(doc *T, component *ResponseRef, documen
 	return nil
 }
 
+func (loader *Loader) ResolveSchemaRef(component *SchemaRef) error {
+	return loader.resolveSchemaRef(nil, component, nil, []string{})
+}
+
 func (loader *Loader) resolveSchemaRef(doc *T, component *SchemaRef, documentPath *url.URL, visited []string) (err error) {
 	if component.isEmpty() {
 		return errMUSTSchema
