@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-openapi/jsonpointer"
 	"github.com/mohae/deepcopy"
+	"github.com/woodsbury/decimal128"
 )
 
 const (
@@ -81,7 +82,7 @@ func (s SchemaRefs) JSONLookup(token string) (any, error) {
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#schema-object
 type Schema struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	OneOf        SchemaRefs    `json:"oneOf,omitempty" yaml:"oneOf,omitempty"`
 	AnyOf        SchemaRefs    `json:"anyOf,omitempty" yaml:"anyOf,omitempty"`
@@ -1643,7 +1644,10 @@ func (schema *Schema) visitJSONNumber(settings *schemaValidationSettings, value 
 	if v := schema.MultipleOf; v != nil {
 		// "A numeric instance is valid only if division by this keyword's
 		//    value results in an integer."
-		if bigFloat := big.NewFloat(value / *v); !bigFloat.IsInt() {
+		numParsed, _ := decimal128.Parse(fmt.Sprintf("%.10f", value))
+		denParsed, _ := decimal128.Parse(fmt.Sprintf("%.10f", *v))
+		_, remainder := numParsed.QuoRem(denParsed)
+		if !remainder.IsZero() {
 			if settings.failfast {
 				return errSchema
 			}

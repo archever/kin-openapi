@@ -149,12 +149,13 @@ func ToV3Operation(doc2 *openapi2.T, components *openapi3.Components, pathItem *
 		return nil, nil
 	}
 	doc3 := &openapi3.Operation{
-		OperationID: operation.OperationID,
-		Summary:     operation.Summary,
-		Description: operation.Description,
-		Deprecated:  operation.Deprecated,
-		Tags:        operation.Tags,
-		Extensions:  stripNonExtensions(operation.Extensions),
+		OperationID:  operation.OperationID,
+		Summary:      operation.Summary,
+		Description:  operation.Description,
+		Deprecated:   operation.Deprecated,
+		Tags:         operation.Tags,
+		Extensions:   stripNonExtensions(operation.Extensions),
+		ExternalDocs: operation.ExternalDocs,
 	}
 	if v := operation.Security; v != nil {
 		doc3Security := ToV3SecurityRequirements(*v)
@@ -513,11 +514,7 @@ func ToV3SchemaRef(schema *openapi2.SchemaRef) *openapi3.SchemaRef {
 		MaxProps:             schema.Value.MaxProps,
 		AllOf:                make(openapi3.SchemaRefs, len(schema.Value.AllOf)),
 		Properties:           make(openapi3.Schemas),
-		AdditionalProperties: schema.Value.AdditionalProperties,
-	}
-
-	if schema.Value.AdditionalProperties.Schema != nil {
-		v3Schema.AdditionalProperties.Schema.Ref = ToV3Ref(schema.Value.AdditionalProperties.Schema.Ref)
+		AdditionalProperties: toV3AdditionalProperties(schema.Value.AdditionalProperties),
 	}
 
 	if schema.Value.Discriminator != "" {
@@ -549,6 +546,30 @@ func ToV3SchemaRef(schema *openapi2.SchemaRef) *openapi3.SchemaRef {
 		Extensions: schema.Extensions,
 		Value:      v3Schema,
 	}
+}
+
+func toV3AdditionalProperties(from openapi3.AdditionalProperties) openapi3.AdditionalProperties {
+	return openapi3.AdditionalProperties{
+		Has:    from.Has,
+		Schema: convertRefsInV3SchemaRef(from.Schema),
+	}
+}
+
+func convertRefsInV3SchemaRef(from *openapi3.SchemaRef) *openapi3.SchemaRef {
+	if from == nil {
+		return nil
+	}
+	to := *from
+	to.Ref = ToV3Ref(to.Ref)
+	if to.Value != nil {
+		v := *from.Value
+		to.Value = &v
+		if to.Value.Items != nil {
+			to.Value.Items.Ref = ToV3Ref(to.Value.Items.Ref)
+		}
+		to.Value.AdditionalProperties = toV3AdditionalProperties(to.Value.AdditionalProperties)
+	}
+	return &to
 }
 
 var ref2To3 = map[string]string{
@@ -1045,12 +1066,13 @@ func FromV3Operation(doc3 *openapi3.T, operation *openapi3.Operation) (*openapi2
 		return nil, nil
 	}
 	result := &openapi2.Operation{
-		OperationID: operation.OperationID,
-		Summary:     operation.Summary,
-		Description: operation.Description,
-		Deprecated:  operation.Deprecated,
-		Tags:        operation.Tags,
-		Extensions:  stripNonExtensions(operation.Extensions),
+		OperationID:  operation.OperationID,
+		Summary:      operation.Summary,
+		Description:  operation.Description,
+		Deprecated:   operation.Deprecated,
+		Tags:         operation.Tags,
+		Extensions:   stripNonExtensions(operation.Extensions),
+		ExternalDocs: operation.ExternalDocs,
 	}
 	if v := operation.Security; v != nil {
 		resultSecurity := FromV3SecurityRequirements(*v)
